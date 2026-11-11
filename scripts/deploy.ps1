@@ -353,12 +353,37 @@ for ($attempt = 1; $attempt -le 3; $attempt++) {
 }
 
 if (-not $pushed) {
-  Write-Note 'The git channel keeps getting reset.'
-  Write-Note "Try: git config --global http.proxy $Proxy"
-  Write-Note 'or run this script again with -ProxyUrl pointing at your proxy.'
-  exit 1
+  Write-Note 'The git channel keeps getting reset; falling back to the GitHub API.'
+  $fallback = Join-Path $PSScriptRoot 'push-via-api.ps1'
+  $previous = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try {
+    & powershell -NoProfile -ExecutionPolicy Bypass -File $fallback
+    $fallbackCode = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $previous
+  }
+  if ($fallbackCode -ne 0) {
+    Write-Note 'The API upload failed as well.'
+    Write-Note "Try: git config --global http.proxy $Proxy"
+    Write-Note 'or run this script again with -ProxyUrl pointing at your proxy.'
+    exit 1
+  }
+  Write-Ok 'Published through the API.'
+
+  # The API writes its own commit, so the local branch now differs from the
+  # remote one. Realign when the git channel allows it.
+  $fetch = Invoke-Native -FilePath git -Arguments @('fetch', 'origin', 'main')
+  if ($fetch.ExitCode -eq 0) {
+    Invoke-Native -FilePath git -Arguments @('reset', '--hard', 'origin/main') | Out-Null
+    Write-Ok 'Realigned the local branch with the remote.'
+  } else {
+    Write-Note 'The local branch still differs from the remote.'
+    Write-Note 'Run "git fetch origin && git reset --hard origin/main" once the connection recovers.'
+  }
+} else {
+  Write-Ok 'Pushed.'
 }
-Write-Ok 'Pushed.'
 
 Write-Step 'Triggering the first deployment'
 
