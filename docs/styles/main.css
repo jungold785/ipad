@@ -1,0 +1,456 @@
+/*
+ * Desk - iPad desk-widget dashboard
+ *
+ * Browser target: Safari 12 (iPad Air 1, iOS 12.5.7).
+ * Deliberately avoided: inset, gap, clamp(), aspect-ratio, :is(), dvh/svh,
+ * nested CSS. See AGENTS.md.
+ */
+
+:root {
+  --bg: #0b0f14;
+  --panel: rgba(255, 255, 255, 0.045);
+  --panel-strong: rgba(255, 255, 255, 0.08);
+  --line: rgba(255, 255, 255, 0.09);
+  --fg: #e9eef4;
+  --fg-dim: #8b98a6;
+  --fg-faint: #57616e;
+  --accent: #58c7ff;
+  --accent-warm: #ffb45c;
+  --good: #5ddc9a;
+  --radius: 20px;
+  --pad: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang HK", "Helvetica Neue",
+    Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#app {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: 100vh;
+  padding: 20px;
+}
+
+/* ---------------------------------------------------------------- panels */
+
+.panel {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--pad);
+  overflow: hidden;
+}
+
+.panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  margin: 0 0 14px 0;
+}
+
+.panel-error {
+  color: var(--accent-warm);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.panel-hint {
+  color: var(--fg-faint);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ------------------------------------------------------------- main area */
+
+.area-main {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0 18px 18px 0;
+  padding: 0;
+}
+
+/* The photo stage fills its area edge to edge, so it drops the panel padding. */
+.area-main > .panel {
+  height: 100%;
+  padding: 0;
+}
+
+.area-side {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+  min-height: 0;
+}
+
+.area-side > .panel {
+  flex: 0 0 auto;
+}
+
+.area-side > .panel + .panel {
+  margin-top: 14px;
+}
+
+.area-side > .panel-grow {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.area-strip {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin-top: 18px;
+}
+
+/* ----------------------------------------------------------------- clock */
+
+.clock {
+  text-align: center;
+}
+
+.clock-time {
+  font-size: 76px;
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.clock-seconds {
+  font-size: 30px;
+  font-weight: 300;
+  color: var(--accent);
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.clock-date {
+  margin-top: 12px;
+  font-size: 19px;
+  color: var(--fg-dim);
+}
+
+.clock-weekday {
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--fg-faint);
+}
+
+/* --------------------------------------------------------------- weather */
+
+.weather-now {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.weather-icon {
+  font-size: 44px;
+  line-height: 1;
+  margin-right: 16px;
+}
+
+.weather-temp {
+  font-size: 44px;
+  font-weight: 300;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.weather-desc {
+  margin-top: 6px;
+  font-size: 16px;
+  color: var(--fg-dim);
+}
+
+.weather-city {
+  font-size: 13px;
+  color: var(--fg-faint);
+  margin-bottom: 14px;
+}
+
+.weather-forecast {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.weather-forecast li {
+  display: flex;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.weather-forecast li:last-child {
+  border-bottom: 0;
+}
+
+.forecast-day {
+  width: 54px;
+  color: var(--fg-dim);
+}
+
+.forecast-icon {
+  width: 34px;
+  font-size: 18px;
+}
+
+.forecast-lo {
+  color: var(--fg-faint);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.forecast-hi {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ------------------------------------------------------------------ todo */
+
+.todo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.todo-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.todo-item:last-child {
+  border-bottom: 0;
+}
+
+.todo-box {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  margin: 2px 12px 0 0;
+  border: 1px solid var(--fg-faint);
+  border-radius: 5px;
+  text-align: center;
+  line-height: 15px;
+  font-size: 12px;
+  color: transparent;
+}
+
+.todo-item.is-done .todo-box {
+  background: var(--good);
+  border-color: var(--good);
+  color: #0b0f14;
+}
+
+.todo-item.is-done .todo-text {
+  color: var(--fg-faint);
+  text-decoration: line-through;
+}
+
+.todo-text {
+  flex: 1 1 auto;
+  word-break: break-word;
+}
+
+.todo-add {
+  margin-top: 14px;
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--fg-dim);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.todo-add:focus {
+  outline: none;
+  border-color: var(--accent);
+  color: var(--fg);
+}
+
+/* ---------------------------------------------------------------- photos */
+
+.photos-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: #05080b;
+}
+
+.photos-stage img {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+
+.photos-stage img.is-active {
+  opacity: 1;
+}
+
+.photos-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 40px 26px 20px 26px;
+  background: -webkit-linear-gradient(
+    top,
+    rgba(0, 0, 0, 0),
+    rgba(0, 0, 0, 0.75)
+  );
+  background: linear-gradient(
+    top,
+    rgba(0, 0, 0, 0),
+    rgba(0, 0, 0, 0.75)
+  );
+  color: #fff;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+
+/* ---------------------------------------------------------------- github */
+
+.feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.feed li {
+  display: flex;
+  align-items: baseline;
+  padding: 6px 0;
+  font-size: 14px;
+  line-height: 1.4;
+  border-bottom: 1px solid var(--line);
+}
+
+.feed li:last-child {
+  border-bottom: 0;
+}
+
+.feed-time {
+  flex: 0 0 auto;
+  width: 72px;
+  color: var(--fg-faint);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.feed-msg {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fg-dim);
+}
+
+.feed-msg strong {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+.feed-badge {
+  flex: 0 0 auto;
+  margin-left: 12px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--panel-strong);
+  color: var(--fg-faint);
+  font-size: 11px;
+}
+
+.feed-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.feed-row .feed-row-right {
+  margin-left: auto;
+  color: var(--fg-faint);
+  font-size: 12px;
+}
+
+/* -------------------------------------------------------- portrait mode */
+
+@media (orientation: portrait) {
+  #app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1.1fr) auto auto;
+  }
+
+  .area-main {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0 0 14px 0;
+  }
+
+  .area-side {
+    grid-column: 1;
+    grid-row: 2;
+    display: block;
+    margin-bottom: 14px;
+  }
+
+  .area-side > .panel + .panel {
+    margin-top: 14px;
+  }
+
+  .area-strip {
+    grid-column: 1;
+    grid-row: 3;
+    margin-top: 0;
+  }
+
+  .clock-time {
+    font-size: 60px;
+  }
+}
+
