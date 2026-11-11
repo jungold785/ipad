@@ -4,18 +4,34 @@
 
 .DESCRIPTION
   Handles the whole first-time setup:
-    1. signs in to GitHub (opens the browser for the device code)
-    2. prepares the repository (safe.directory, main branch, identity)
-    3. commits the working tree
-    4. creates the public repository if it does not exist
-    5. enables GitHub Pages with the Actions workflow as the source
-    6. pushes and triggers a deployment
+    1. finds a usable network path (direct or through a local proxy)
+    2. signs in to GitHub (opens the browser for the device code)
+    3. prepares the repository (safe.directory, main branch, identity)
+    4. commits the working tree
+    5. creates the public repository if it does not exist
+    6. enables GitHub Pages with the Actions workflow as the source
+    7. pushes and triggers a deployment
 
   Safe to run more than once.
 
+.PARAMETER ProxyUrl
+  Proxy to use for GitHub, for example http://127.0.0.1:51081.
+  When omitted, a local proxy is detected automatically.
+
+.PARAMETER NoProxy
+  Ignore local proxies and connect directly.
+
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1
+
+.EXAMPLE
+  powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1 -ProxyUrl http://127.0.0.1:7890
 #>
+
+param(
+  [string]$ProxyUrl = '',
+  [switch]$NoProxy
+)
 
 $ErrorActionPreference = 'Stop'
 
@@ -51,6 +67,114 @@ function Invoke-Native {
 function Show-Output {
   param($Output)
   $Output | ForEach-Object { Write-Host $_ }
+}
+
+# ------------------------------------------------------------------ network
+function Test-TcpPort {
+  # Note: the parameter must not be called $Host, that name is reserved.
+  param([string]$Server, [int]$Port, [int]$TimeoutMs = 3000)
+  $client = New-Object System.Net.Sockets.TcpClient
+  try {
+    $async = $client.BeginConnect($Server, $Port, $null, $null)
+    if (-not $async.AsyncWaitHandle.WaitOne($TimeoutMs)) { return $false }
+    $client.EndConnect($async)
+    return $client.Connected
+  } catch {
+    return $false
+  } finally {
+    $client.Close()
+  }
+}
+
+# True when the endpoint speaks the HTTP CONNECT proxy protocol.
+function Test-ProxyConnect {
+  param([string]$ProxyHost, [int]$ProxyPort, [string]$TargetHost = 'github.com', [int]$TargetPort = 443)
+  $client = New-Object System.Net.Sockets.TcpClient
+  try {
+    $async = $client.BeginConnect($ProxyHost, $ProxyPort, $null, $null)
+    if (-not $async.AsyncWaitHandle.WaitOne(2500)) { return $false }
+    $stream = $client.GetStream()
+    $stream.ReadTimeout = 4000
+    $request = "CONNECT $TargetHost`:$TargetPort HTTP/1.1`r`nHost: $TargetHost`:$TargetPort`r`nProxy-Connection: close`r`n`r`n"
+    $bytes = [System.Text.Encoding]::ASCII.GetBytes($request)
+    $stream.Write($bytes, 0, $bytes.Length)
+    $buffer = New-Object byte[] 256
+    $read = $stream.Read($buffer, 0, 256)
+    if ($read -le 0) { return $false }
+    $response = [System.Text.Encoding]::ASCII.GetString($buffer, 0, $read)
+    return ($response -match '^HTTP/1\.[01]\s+200')
+  } catch {
+    return $false
+  } finally {
+    $client.Close()
+  }
+}
+
+# Every local endpoint worth probing, system proxy settings first.
+function Get-ProxyCandidates {
+  $list = New-Object System.Collections.Generic.List[string]
+
+  $settings = Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings' -ErrorAction SilentlyContinue
+  if ($settings -and $settings.ProxyEnable -eq 1 -and $settings.ProxyServer) {
+    foreach ($entry in ($settings.ProxyServer -split ';')) {
+      $value = $entry
+      if ($entry -match '=') { $value = ($entry -split '=', 2)[1] }
+      $value = $value.Trim() -replace '^[a-z]+://', ''
+      if ($value -match '^(?<host>[^:/]+):(?<port>\d+)$') {
+        $list.Add(('{0}:{1}' -f $Matches.host, $Matches.port))
+      }
+    }
+  }
+
+  $skip = @(135, 139, 445, 5040, 5357, 8000, 11434)
+  foreach ($line in (netstat -ano 2>$null)) {
+    if ($line -match '^\s*TCP\s+(?<addr>\S+):(?<port>\d+)\s+\S+\s+LISTENING') {
+      $addr = $Matches.addr
+      $port = [int]$Matches.port
+      if ($skip -contains $port) { continue }
+      if ($port -ge 49600 -and $port -le 49700) { continue }
+      if ($addr -eq '127.0.0.1' -or $addr -eq '0.0.0.0' -or $addr -eq '[::]') {
+        $list.Add("127.0.0.1:$port")
+      }
+    }
+  }
+
+  return $list
+}
+
+Write-Step 'Checking the network path'
+
+$Proxy = ''
+if ($NoProxy) {
+  Write-Ok 'Proxies are disabled by request.'
+} elseif ($ProxyUrl) {
+  $Proxy = $ProxyUrl
+  Write-Ok "Using the proxy $Proxy."
+} else {
+  foreach ($candidate in (Get-ProxyCandidates)) {
+    $pieces = $candidate -split ':'
+    if (Test-ProxyConnect -ProxyHost $pieces[0] -ProxyPort ([int]$pieces[1])) {
+      $Proxy = "http://$candidate"
+      break
+    }
+  }
+  if ($Proxy) {
+    Write-Ok "Found a local proxy at $Proxy."
+  } else {
+    if (Test-TcpPort -Server 'github.com' -Port 443) {
+      Write-Ok 'No local proxy found; connecting directly.'
+    } else {
+      Write-Note 'No local proxy found and github.com is not reachable directly.'
+      Write-Note 'Start your proxy app, or pass -ProxyUrl http://127.0.0.1:<port>.'
+    }
+  }
+}
+
+if ($Proxy) {
+  $env:HTTP_PROXY = $Proxy
+  $env:HTTPS_PROXY = $Proxy
+  $env:http_proxy = $Proxy
+  $env:https_proxy = $Proxy
 }
 
 # ---------------------------------------------------------------- 1. gh CLI
@@ -104,6 +228,15 @@ if ($safe.ExitCode -ne 0 -or $safe.Output -notcontains $RepoPath) {
 $env:GIT_CONFIG_COUNT = '1'
 $env:GIT_CONFIG_KEY_0 = 'safe.directory'
 $env:GIT_CONFIG_VALUE_0 = $RepoPath
+
+if ($Proxy) {
+  # Repository-local, so it never leaks into other projects.
+  Invoke-Native -FilePath git -Arguments @('config', 'http.proxy', $Proxy) | Out-Null
+  Invoke-Native -FilePath git -Arguments @('config', 'http.version', 'HTTP/1.1') | Out-Null
+  Invoke-Native -FilePath git -Arguments @('config', 'http.lowSpeedLimit', '0') | Out-Null
+  Invoke-Native -FilePath git -Arguments @('config', 'http.lowSpeedTime', '999999') | Out-Null
+  Write-Ok 'Pointed git at the proxy.'
+}
 
 $head = Invoke-Native -FilePath git -Arguments @('symbolic-ref', '--short', 'HEAD')
 $branch = ''
@@ -205,10 +338,24 @@ if ($pages.ExitCode -ne 0) {
 # ---------------------------------------------------------------- 6. push
 Write-Step 'Pushing to GitHub'
 
-$push = Invoke-Native -FilePath git -Arguments @('push', '-u', 'origin', 'main')
-Show-Output $push.Output
-if ($push.ExitCode -ne 0) {
-  Write-Note 'Push failed. Check your credentials and try again.'
+$pushed = $false
+for ($attempt = 1; $attempt -le 3; $attempt++) {
+  $push = Invoke-Native -FilePath git -Arguments @('push', '-u', 'origin', 'main')
+  Show-Output $push.Output
+  if ($push.ExitCode -eq 0) {
+    $pushed = $true
+    break
+  }
+  if ($attempt -lt 3) {
+    Write-Note "The push was interrupted (attempt $attempt of 3). Retrying in 5 seconds..."
+    Start-Sleep -Seconds 5
+  }
+}
+
+if (-not $pushed) {
+  Write-Note 'The git channel keeps getting reset.'
+  Write-Note "Try: git config --global http.proxy $Proxy"
+  Write-Note 'or run this script again with -ProxyUrl pointing at your proxy.'
   exit 1
 }
 Write-Ok 'Pushed.'

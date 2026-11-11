@@ -54,6 +54,15 @@ powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1
 
 部署完網址是 `https://jungold785.github.io/ipad/`。
 
+如果 `git push` 報 `Recv failure: Connection was reset`（中國大陸連 GitHub 常見），
+腳本會自動偵測本機代理（Clash／AndyVPN／v2ray 等）並改走代理推送。也可以手動指定：
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1 -ProxyUrl http://127.0.0.1:7890
+```
+
+略過代理用 `-NoProxy`。代理設定只寫進本倉庫的 `.git/config`，不影響其他專案。
+
 想看建置進度：
 
 ```bash
