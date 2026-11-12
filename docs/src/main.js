@@ -30,6 +30,52 @@ var AREAS = {
 
 var WIDGETS = [photos, clock, weather, todo, rss];
 
+/* ------------------------------------------------------------ night mode */
+
+/* The night window is written as plain "HH:MM" strings in the device local
+   time and may wrap past midnight, for example 22:30 -> 06:30. */
+function parseClock(value, fallback) {
+  var parts = String(value || '').split(':');
+  var hours = parseInt(parts[0], 10);
+  var minutes = parseInt(parts[1], 10);
+  if (isNaN(hours) || isNaN(minutes)) {
+    return fallback;
+  }
+  return hours * 60 + minutes;
+}
+
+function isNightNow(from, to) {
+  var now = new Date();
+  var current = now.getHours() * 60 + now.getMinutes();
+  if (from === to) {
+    return false;
+  }
+  if (from < to) {
+    return current >= from && current < to;
+  }
+  /* The window crosses midnight. */
+  return current >= from || current < to;
+}
+
+function syncNightMode() {
+  var night = (window.DESK_CONFIG && window.DESK_CONFIG.night) || {};
+  var body = document.body;
+  if (!body) {
+    return;
+  }
+  if (!night.enabled) {
+    body.classList.remove('is-night');
+    return;
+  }
+  var from = parseClock(night.from, 22 * 60 + 30);
+  var to = parseClock(night.to, 6 * 60 + 30);
+  if (isNightNow(from, to)) {
+    body.classList.add('is-night');
+  } else {
+    body.classList.remove('is-night');
+  }
+}
+
 /* A widget opts out by setting enabled to false, for example a feature the
    user switched off in config.js. Such a widget gets no panel at all, so it
    cannot leave an empty strip behind. */
@@ -97,10 +143,14 @@ function startWidgets() {
 function boot() {
   buildLayout();
   startWidgets();
+  /* Fade the desk to black during the night window. */
+  syncNightMode();
+  window.setInterval(syncNightMode, 30000);
   /* Keep the clock honest when the iPad wakes from sleep. */
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden) {
       startWidgets();
+      syncNightMode();
     }
   });
 }

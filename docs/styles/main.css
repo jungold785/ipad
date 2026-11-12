@@ -40,6 +40,7 @@ body {
   -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   user-select: none;
+  transition: background-color 900ms ease;
 }
 
 #app {
@@ -48,6 +49,26 @@ body {
   grid-template-rows: minmax(0, 1fr) auto;
   height: 100vh;
   padding: 20px;
+  transition: opacity 900ms ease;
+  /* In standalone mode the status bar floats over the page, and with
+     Guided Access it disappears entirely. Each override stands alone so an
+     old browser that cannot parse env() still keeps the plain padding. */
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  padding-right: calc(20px + env(safe-area-inset-right, 0px));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  padding-left: calc(20px + env(safe-area-inset-left, 0px));
+}
+
+/* ------------------------------------------------------------ night mode */
+
+/* During the night window the whole desk fades out, so the frame reads as
+   "off" even while the iPad keeps the backlight on. */
+body.is-night {
+  background: #000000;
+}
+
+body.is-night #app {
+  opacity: 0;
 }
 
 /* ---------------------------------------------------------------- panels */

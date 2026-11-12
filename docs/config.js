@@ -24,10 +24,22 @@
     /* Photo slideshow - drop images into docs/photos/ */
     photos: {
       folder: 'photos',
-      intervalMs: 20000,
+      /* One hour between pictures, so the frame is calm enough to look at. */
+      intervalMs: 3600000,
       shuffle: true,
       /* Explicit list; when empty the widget reads photos/manifest.json */
       files: [],
+    },
+
+    /* Night mode - the whole dashboard fades to black during these hours,
+       so the frame looks switched off without touching system settings.
+       Times are "HH:MM" in the device local time and may wrap past
+       midnight. Set enabled to false to keep the frame lit around the
+       clock. */
+    night: {
+      enabled: true,
+      from: '22:30',
+      to: '06:30',
     },
 
     /* RSS - fetched server-side by scripts/fetch-rss.mjs, see README */
