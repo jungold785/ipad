@@ -93,12 +93,44 @@ photos: { folder: 'photos', intervalMs: 20000, shuffle: true },
 把圖片丟進 `docs/photos/`，然後在 `docs/photos/manifest.json` 列出檔名。
 建議 1024 × 768。
 
+`manifest.json` 其實不用手動維護：`scripts/build-photo-manifest.mjs` 會掃描
+`docs/photos/` 重新產生它，Actions 每次部署前都會先跑一次，所以放進去的圖片
+一定會出現在輪播中。不想碰 git 的話，見「手機上載相片」一節。
+
 ### 開啟 RSS
 
 RSS 來源多半沒送 CORS 標頭，瀏覽器讀不到，所以改由 Actions 抓取後轉成 JSON。
 
 1. 在 `docs/config.js` 設 `rss.enabled = true` 並填 `rss.feeds`
 2. 推上去，Actions 會產生 `docs/data/rss.json`
+
+## 手機上載相片
+
+不用再回到電腦跑 git，開一條網址就能從手機加相片：
+
+<https://jungold785.github.io/ipad/upload.html>
+
+**第一次要先做一件事**：到 GitHub 建立一個只給這個倉庫的細部個人存取權杖。
+
+1. 打開 <https://github.com/settings/personal-access-tokens/new>，命名 `ipad-photos`
+2. Repository access 選 **Only select repositories**，勾選 `jungold785/ipad`
+3. Repository permissions 把 **Contents** 設成 **Read and write**
+4. 按 Generate token，複製那串 `github_pat_` 開頭的字串
+
+回到上載頁把令牌貼上按「儲存」。令牌只存在那部裝置的瀏覽器裡，不會進倉庫；
+想全部撤銷，到 Settings → Developer settings 刪掉這個令牌就行。
+
+接著在手機上：
+
+- 第 2 節選相片；方向不對就勾「旋轉 90 度」
+- 按「上載到相片匣」，相片會自動縮成 JPEG 再進倉庫
+- 第 3 節可以看現有相片、刪掉不需要的
+
+上載會直接 commit 到 `main`，觸發 GitHub Actions 重新部署，
+大約一兩分鐘後儀表板就會換上新相片。
+
+> 第一次上載建議在手機 Safari 打開這個網址 → **分享 → 添加到主屏幕**，
+> 之後從主屏幕點進去就有專屬按鈕了。
 
 ## 在 iPad 上當擺件
 

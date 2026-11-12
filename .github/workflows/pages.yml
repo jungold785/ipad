@@ -34,6 +34,9 @@ jobs:
         run: node scripts/fetch-rss.mjs
         continue-on-error: true
 
+      - name: Build the photo manifest
+        run: node scripts/build-photo-manifest.mjs
+
       - name: Check iOS 12 compatibility
         run: node scripts/check-compat.mjs
 

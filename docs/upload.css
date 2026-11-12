@@ -1,0 +1,274 @@
+/*
+ * Styles for the standalone photo upload page.
+ *
+ * Browser target: Safari 12 (iPad Air 1, iOS 12.5.7).
+ * No flexbox gap, no clamp(), no inset, no dvh. See AGENTS.md.
+ */
+
+:root {
+  --bg: #0b0f14;
+  --panel: rgba(255, 255, 255, 0.045);
+  --line: rgba(255, 255, 255, 0.09);
+  --fg: #e9eef4;
+  --fg-dim: #8b98a6;
+  --fg-faint: #57616e;
+  --accent: #58c7ff;
+  --good: #5ddc9a;
+  --warn: #ffb45c;
+  --radius: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang HK", "Helvetica Neue",
+    Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 18px 60px 18px;
+}
+
+.head {
+  margin-bottom: 26px;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: var(--fg-faint);
+  font-size: 15px;
+  text-decoration: none;
+}
+
+h1 {
+  margin: 0 0 8px 0;
+  font-size: 30px;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+}
+
+.lead {
+  margin: 0;
+  color: var(--fg-dim);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 18px;
+}
+
+h2 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+.note {
+  margin: 0 0 14px 0;
+  color: var(--fg-dim);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+code {
+  padding: 1px 5px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.row > input[type='password'],
+.row > input[type='file'] {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-right: 10px;
+}
+
+input[type='password'] {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  color: var(--fg);
+  font-size: 15px;
+  font-family: inherit;
+}
+
+input[type='password']:focus,
+input[type='file']:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+input[type='file'] {
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed var(--line);
+  border-radius: 11px;
+  color: var(--fg-dim);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.btn {
+  flex: 0 0 auto;
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  color: var(--fg);
+  font-size: 15px;
+  font-family: inherit;
+  text-decoration: none;
+  text-align: center;
+}
+
+.btn:active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.btn.primary {
+  width: 100%;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #04121b;
+  font-weight: 600;
+}
+
+.btn.primary:disabled {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--line);
+  color: var(--fg-dim);
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--fg-dim);
+}
+
+.btn.tiny {
+  padding: 6px 12px;
+  font-size: 13px;
+  margin-left: 12px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  margin-bottom: 14px;
+  color: var(--fg-dim);
+  font-size: 14px;
+}
+
+.check input {
+  margin-right: 10px;
+  width: 18px;
+  height: 18px;
+}
+
+.queue,
+.files {
+  list-style: none;
+  margin: 0 0 16px 0;
+  padding: 0;
+}
+
+.queue li,
+.files li {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.queue li:last-child,
+.files li:last-child {
+  border-bottom: 0;
+}
+
+.queue-name,
+.file-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.queue-size,
+.file-size {
+  flex: 0 0 auto;
+  margin-left: 12px;
+  color: var(--fg-faint);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.status {
+  margin: 12px 0 0 0;
+  min-height: 20px;
+  color: var(--fg-faint);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.status.ok {
+  color: var(--good);
+}
+
+.status.warn {
+  color: var(--warn);
+}
+
+.how {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.how summary {
+  color: var(--fg-dim);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.how ol {
+  margin: 12px 0 0 0;
+  padding-left: 22px;
+  color: var(--fg-dim);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.how li {
+  margin-bottom: 6px;
+}

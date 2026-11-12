@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+  <head>
+    <meta charset="utf-8" />
+    <title>上載相片 · Desk</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="上載相片" />
+    <meta name="theme-color" content="#0b0f14" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="apple-touch-icon" href="icons/icon-180.png" />
+    <link rel="stylesheet" href="upload.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="head">
+        <a class="back" href="index.html">&larr; 回到儀表板</a>
+        <h1>上載相片</h1>
+        <p class="lead">在手機或 iPad 上選相片，上載到 GitHub 之後，儀表板一兩分鐘內就會換上新相片。</p>
+      </header>
+
+      <section class="card" id="token-card">
+        <h2>1. 授權</h2>
+        <p class="note" id="token-note">需要一個 GitHub 令牌，只授予
+          <code>jungold785/ipad</code> 這個倉庫的「內容」讀寫權限。令牌只保存在這部裝置的
+          瀏覽器裡，不會上傳，也不會寫進倉庫。</p>
+        <div class="row">
+          <input
+            id="token"
+            type="password"
+            autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+            placeholder="ghp_… 或 github_pat_…"
+          />
+          <button id="token-save" class="btn">儲存</button>
+        </div>
+        <div class="row">
+          <button id="token-clear" class="btn ghost">清除令牌</button>
+          <a class="btn ghost" href="https://github.com/settings/personal-access-tokens/new"
+            target="_blank" rel="noopener">建立令牌</a>
+        </div>
+        <p class="status" id="token-status"></p>
+        <details class="how">
+          <summary>如何建立令牌（兩分鐘）</summary>
+          <ol>
+            <li>開啟 GitHub 的「細部個人存取權杖」頁面，命名 <code>ipad-photos</code>。</li>
+            <li>Repository access 選 <code>Only select repositories</code>，勾選
+              <code>jungold785/ipad</code>。</li>
+            <li>Repository permissions 把 <code>Contents</code> 設成 <code>Read and write</code>。</li>
+            <li>按 Generate token，複製那串以 <code>github_pat_</code> 開頭的字串。</li>
+            <li>貼到上面的欄位並按「儲存」。</li>
+          </ol>
+          <p class="note">令牌只存在本機。想全部撤銷，到 GitHub 的
+            Settings &rarr; Developer settings 刪除它即可。</p>
+        </details>
+      </section>
+
+      <section class="card">
+        <h2>2. 選相片</h2>
+        <div class="row">
+          <input id="files" type="file" accept="image/*" multiple />
+        </div>
+        <label class="check">
+          <input id="rotate" type="checkbox" />
+          <span>照片方向不對時，選這個（旋轉 90 度）</span>
+        </label>
+        <ul class="queue" id="queue"></ul>
+        <button id="upload" class="btn primary" disabled>上載到相片匣</button>
+        <p class="status" id="upload-status"></p>
+      </section>
+
+      <section class="card">
+        <h2>3. 現有的相片</h2>
+        <p class="note">點一下相片名稱旁的「刪除」，就會從倉庫移除；頁面會詢問一次。</p>
+        <div class="row">
+          <button id="files-refresh" class="btn ghost">重新整理清單</button>
+        </div>
+        <ul class="files" id="files-list"></ul>
+        <p class="status" id="files-status"></p>
+      </section>
+
+      <section class="card">
+        <h2>不想用令牌？</h2>
+        <p class="note">可以直接用 GitHub 網頁版上載到倉庫，相簿會問你要不要選相片。
+          上載完之後回到這裡按「重新整理清單」，確認相片已經進了倉庫。清單檔不用手動改，
+          每次部署時都會自動重新產生。</p>
+        <a class="btn ghost" href="https://github.com/jungold785/ipad/upload/main/docs/photos"
+          target="_blank" rel="noopener">用 GitHub 網頁上載</a>
+      </section>
+    </main>
+
+    <script src="upload.js"></script>
+  </body>
+</html>

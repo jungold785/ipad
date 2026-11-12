@@ -296,6 +296,15 @@ if ((Invoke-Native -FilePath git -Arguments @('config', '--get', 'user.email')).
 }
 
 # --------------------------------------------------------------- 3. commit
+Write-Step 'Rebuilding the photo manifest'
+
+$manifest = Invoke-Native -FilePath node -Arguments @('scripts/build-photo-manifest.mjs')
+if ($manifest.ExitCode -eq 0) {
+  Write-Ok ($manifest.Output -join ' ')
+} else {
+  Write-Note 'Could not rebuild the photo manifest; CI rebuilds it anyway.'
+}
+
 Write-Step 'Committing the working tree'
 
 $add = Invoke-Native -FilePath git -Arguments @('add', '-A')
