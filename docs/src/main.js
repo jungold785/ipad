@@ -10,6 +10,7 @@
  *     title: '時間',          // optional panel heading
  *     interval: 1000,        // tick cadence in ms
  *     grow: true,            // fill remaining height in the side column
+ *     enabled: true,         // set false to drop the widget entirely
  *     mount: function (panel) { ... },
  *     tick: function () { ... }
  *   }
@@ -19,7 +20,6 @@ import { clock } from './modules/clock/index.js';
 import { weather } from './modules/weather/index.js';
 import { todo } from './modules/todo/index.js';
 import { photos } from './modules/photos/index.js';
-import { github } from './modules/github/index.js';
 import { rss } from './modules/rss/index.js';
 
 var AREAS = {
@@ -28,7 +28,14 @@ var AREAS = {
   strip: 'area-strip',
 };
 
-var WIDGETS = [photos, clock, weather, todo, github, rss];
+var WIDGETS = [photos, clock, weather, todo, rss];
+
+/* A widget opts out by setting enabled to false, for example a feature the
+   user switched off in config.js. Such a widget gets no panel at all, so it
+   cannot leave an empty strip behind. */
+function isEnabled(widget) {
+  return !!(widget && widget.id && AREAS[widget.area] && widget.enabled !== false);
+}
 
 function buildArea(app, name) {
   var section = document.createElement('section');
@@ -47,7 +54,7 @@ function buildLayout() {
   });
 
   WIDGETS.forEach(function (widget) {
-    if (!widget || !widget.id || !AREAS[widget.area]) {
+    if (!isEnabled(widget)) {
       return;
     }
     var panel = document.createElement('div');
@@ -58,9 +65,22 @@ function buildLayout() {
   });
 }
 
+var timersStarted = false;
+
 function startWidgets() {
+  if (timersStarted) {
+    /* The timers are already running, so only refresh the values. */
+    WIDGETS.forEach(function (widget) {
+      if (isEnabled(widget) && typeof widget.tick === 'function') {
+        widget.tick();
+      }
+    });
+    return;
+  }
+  timersStarted = true;
+
   WIDGETS.forEach(function (widget) {
-    if (!widget || !widget.id) {
+    if (!isEnabled(widget)) {
       return;
     }
     if (typeof widget.tick === 'function') {

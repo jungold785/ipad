@@ -353,7 +353,7 @@ body {
   letter-spacing: 0.01em;
 }
 
-/* ---------------------------------------------------------------- github */
+/* ----------------------------------------------------------------- feeds */
 
 .feed {
   list-style: none;
@@ -391,31 +391,10 @@ body {
   color: var(--fg-dim);
 }
 
-.feed-msg strong {
-  color: var(--fg);
-  font-weight: 500;
-}
-
-.feed-badge {
-  flex: 0 0 auto;
-  margin-left: 12px;
-  padding: 2px 8px;
-  border-radius: 20px;
-  background: var(--panel-strong);
-  color: var(--fg-faint);
-  font-size: 11px;
-}
-
 .feed-row {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
-}
-
-.feed-row .feed-row-right {
-  margin-left: auto;
-  color: var(--fg-faint);
-  font-size: 12px;
 }
 
 /* -------------------------------------------------------- portrait mode */

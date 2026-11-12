@@ -9,14 +9,15 @@
 
   window.DESK_CONFIG = {
     /* Clock and date */
-    timezone: 'Asia/Hong_Kong',
+    timezone: 'Asia/Shanghai',
     showSeconds: true,
 
-    /* Weather - Open-Meteo needs no API key and allows cross-origin requests. */
+    /* Weather - Open-Meteo needs no API key and allows cross-origin requests.
+       Coordinates come from the Open-Meteo geocoder. */
     weather: {
-      city: '香港',
-      latitude: 22.3193,
-      longitude: 114.1694,
+      city: '东阳',
+      latitude: 29.26778,
+      longitude: 120.22528,
       units: 'celsius',
     },
 
@@ -27,13 +28,6 @@
       shuffle: true,
       /* Explicit list; when empty the widget reads photos/manifest.json */
       files: [],
-    },
-
-    /* GitHub activity - public API, no token, 60 requests/hour per IP */
-    github: {
-      owner: 'jungold785',
-      repo: 'ipad',
-      limit: 8,
     },
 
     /* RSS - fetched server-side by scripts/fetch-rss.mjs, see README */

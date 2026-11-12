@@ -50,7 +50,7 @@ to compile.
 Hard requirements. Safari 12 lacks optional chaining, `??`, `dvh`/`svh`,
 flexbox `gap`, CSS nesting, `:is()`, `aspect-ratio` and `clamp()`. Always
 prefix `backdrop-filter` with `-webkit-`. The dashboard must stay usable
-offline; only live widgets (weather, GitHub, RSS) touch the network.
+offline; only live widgets (weather, RSS) touch the network.
 
 ## Testing Guidelines
 

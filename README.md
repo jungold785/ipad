@@ -14,7 +14,6 @@
 | 時間 | 大字時鐘 + 日期 + 星期 | 本機 |
 | 天氣 | 現況 + 未來三天預報 | Open-Meteo（免金鑰） |
 | 待辦 | 可勾選、可編輯，存 localStorage | 本機 |
-| GitHub | 最近提交動態 | GitHub 公開 API |
 | RSS | 最新文章（可選） | Actions 產生的快取 |
 
 ## 本機預覽
@@ -83,9 +82,8 @@ gh repo create ipad --public --source=. --remote=origin --push
 所有可調項目在 `docs/config.js`：
 
 ```js
-weather: { city: '香港', latitude: 22.3193, longitude: 114.1694 },
+weather: { city: '东阳', latitude: 29.26778, longitude: 120.22528 },
 photos: { folder: 'photos', intervalMs: 20000, shuffle: true },
-github: { owner: 'jungold785', repo: 'ipad', limit: 8 },
 ```
 
 機器專用的設定放 `docs/config.local.js`（已被 git 忽略），會覆蓋同名項目。

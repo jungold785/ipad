@@ -6,14 +6,11 @@ var config = (window.DESK_CONFIG && window.DESK_CONFIG.rss) || {};
 export var rss = {
   id: 'rss',
   area: 'strip',
+  enabled: !!config.enabled,
   interval: 30 * 60 * 1000,
 
   mount: function (panel) {
     this.panel = panel;
-    if (!config.enabled) {
-      showHint(panel, 'RSS 未啟用（見 config.js）');
-      return;
-    }
     this.refresh();
   },
 
