@@ -177,6 +177,12 @@ if ($Proxy) {
   $env:https_proxy = $Proxy
 }
 
+# Never let git block on an interactive username/password prompt: when the
+# credential helper is not in place the push has to fail fast instead of
+# hanging the whole deployment.
+$env:GIT_TERMINAL_PROMPT = '0'
+$env:GCM_INTERACTIVE = 'never'
+
 # ---------------------------------------------------------------- 1. gh CLI
 Write-Step 'Checking the GitHub CLI'
 
@@ -193,7 +199,7 @@ if ($auth.ExitCode -ne 0) {
   $previous = $ErrorActionPreference
   $ErrorActionPreference = 'Continue'
   try {
-    & gh auth login -h github.com --web --git-protocol https
+    & gh auth login -h github.com --web --git-protocol https -s workflow
     $loginCode = $LASTEXITCODE
   } finally {
     $ErrorActionPreference = $previous
@@ -204,6 +210,35 @@ if ($auth.ExitCode -ne 0) {
   }
 }
 Write-Ok 'Signed in.'
+
+# The default device-login token carries repo/read:org/gist only. Without the
+# workflow scope GitHub refuses any push that creates or changes a file under
+# .github/workflows, so the deployment workflow could never be delivered.
+$status = Invoke-Native -FilePath gh -Arguments @('auth', 'status')
+$scopeLine = ''
+foreach ($line in $status.Output) {
+  if ($line -match 'Token scopes') { $scopeLine = [string]$line }
+}
+if ($scopeLine -notmatch 'workflow') {
+  Write-Note 'The token is missing the "workflow" scope; requesting it now.'
+  Write-Note 'Approve the request in the browser that opens.'
+  $previous = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try {
+    & gh auth refresh -h github.com -s workflow
+    $refreshCode = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $previous
+  }
+  if ($refreshCode -ne 0) {
+    Write-Note 'Could not add the workflow scope.'
+    Write-Note 'Run "gh auth refresh -h github.com -s workflow" and try again.'
+    exit 1
+  }
+  Write-Ok 'The workflow scope was added.'
+} else {
+  Write-Ok 'The token already has the workflow scope.'
+}
 
 Invoke-Native -FilePath gh -Arguments @('auth', 'setup-git') | Out-Null
 
